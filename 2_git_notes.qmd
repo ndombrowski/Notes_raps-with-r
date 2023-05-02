@@ -1,0 +1,152 @@
+---
+engine: knitr
+execute:
+  echo: false
+---
+
+
+# Notes on using git and github
+
+The notes were taken from the pages from [here](https://raps-with-r.dev/github.html).
+
+
+## Issues
+
+If the repository is public, anyone can open an issue to either submit a bug, or suggest some ideas, and if the repository is private, only invited collaborators can do this.  
+
+Give a nice title to the issue (1), add a thorough description (2), (optionally) assign it to someone (3) and (optionally) add a label to it (4), finally click on “Submit new issue” (5) to submit the issue.
+
+Sometimes issues don’t need to be very long, and act more as reminders than anything else. For example here, the owner of the repository didn’t have the time to add a Readme, but didn’t want to forget to add one later on. 
+
+If you encountered a bug and want to open an issue, it is very important that you provide a **minimal, reproducible example (MRE)**. MREs are snippets of code that can be run very easily by someone other than yourself and which produce the bug reliably.
+
+The bar you need to set for an MRE is as follows: bar needed package dependencies that may need to be installed beforehand, people that try to help you should be able to run your script by simply copy-and-pasting it into an R console. 
+
+
+## Trunk-based development
+
+The idea of trunk-based development is simple; team members should work on separate branches to add features or fix bugs, and then merge their branch to the “trunk” (in our case the master branch) to add their changes back to the main code-base. And this process should happen quickly, ideally every day, or as soon as some code is ready. 
+
+In brief a workflow can look like this:
+
+```{bash}
+#new collaborator should first clone the repo
+got clone git@github.com:xxx/yyy.git
+
+#create a new branch, the goal is to work on adding a metadatafile
+#running this will switch the project to a new branch
+git checkout -b "add_readme"
+
+#we can double check on what branch we are with:
+git status
+
+#now we can generate a random readm
+echo "hello world" > metadata.txt
+
+#track it and push changes to new branch and not to master
+git add .
+git commit -am "worked on issue #1"
+git push origin add_readme
+```
+
+After running this Git tells us that we now need to create a pull request. What is that? Well, if we want to merge our brunch back to the trunk, we need to do so by using a pull request. if we go to github, we should see a compare and pull request.
+
+We can now decide to continue working on this branch, or, since the purpose of this branch was only to add the readme file, decide instead to do a pull request. By clicking on the "Compare & pull request" we should see a page with an `Open a pull request`. 
+
+We can leave a comment, look at the changes and add a reviewer if needed.
+
+In this case, even if we request a review, Github tells us that the branch can safely be merged. This is because we added a file and did not touch anything else, and also because the owner of the repository was not working, so there was no opportunity for conflicts to arise.
+
+At the same time, the owner should have gotten a notification to review the pull request.By clicking on the notification, the owner gets taken to a view with more information. The reviewer can check the commit, the files that were changed, and see if there are any conflicts between this code and the code base on the master (or trunk) branch. Github also tells us two interesting things: the owner can add a rule that states that any pull request must be approved, and also that continuous integration has not been set up.
+
+We can go ahead and add a rule that each pull request has to be approved. By clicking on “Add rule”, a screen with a set of rules to add appears. If we would click the first option, more options will appear. This way we for example can ensure that the owner actually has to go and see the files that were changed. It’s possible to add comments to single lines if needed. 
+
+Then, by clicking on “Review changes”, it’s possible to either add a general comment, approve the pull request, or request changes that must be addressed before merging. By submitting the review, the reviewer is taken back to the issue. The reviewer can now merge the pull request by clicking on the “Merge pull request” button. Github even suggests we deleted the branch, which served its purpose.
+
+
+## Handling conflicts
+
+What makes handling conflicts easier with Git, is that Git is able to tell you where you can find clashes on a per-line basis. So for instance, if you change the ten first lines of a script, and I change the ten next lines, there would be no conflict, and Git will automatically merge both our contributions into a single file. 
+
+So how do conflicts happen in practice? Let’s imagine the following scenario. Both Bruno and the project owner will create a branch, and edit the same file. Perhaps they talked over the phone and decided to add a feature or correct a bug. Perhaps they decided that it wasn’t worth it to open an issue on Github and assign someone to do it. After all, they discussed this on the phone and decided that Bruno should do it. Or was it the owner who needed to solve the issue? No one remembers now. Either way, they both did, and changed the same file, so a conflict will ensue.
+
+```{bash}
+#first our collaborator = bruno, has to switch back to the main branch
+git checkout master
+```
+
+Git tells us to update the code on our computer by running git pull. We use git push to upload code to Github, and use git pull to download code from Github.
+
+```{bash}
+git pull
+
+#create a branch to work on new feature
+git checkout -b add_cool_feature
+```
+
+Now lets imagine both the owner and collaborator work on the file analysis.R and changed the same file, analysis.R in two separate branches.  They did what they had to do, and now these two branches need to be merged back to the trunk. So Bruno does a pull request. First, Bruno selects the feature branch (1), then clicks on “Contribute” (2) and then “Open pull request” (3). Now Bruno can click on “Create pull request”, but remember, because reviews are required, automatic merging is disabled.
+
+If now we go see what happens from the project owner’s side of things, first of all, there’s now a notification for a pending review. By clicking on it, the project owner can review the pull request and decide what to do with it. So at this point, the owner did not open a pull request for the feature he or she worked on yet. And maybe that’s a good thing, because now the project owner can see that the changes that Bruno made on the file will conflict with the project owner’s changes.
+
+So how to move forward? Simple: the project owner can decide to approve the pull request, which will merge Bruno’s changes into the master branch (or the trunk). Then, instead of opening a pull request for merging his or her changes into trunk, which will cause a conflict, the project owner can instead merge the changes from the trunk into his or her feature branch. his will also create a conflict, but now the project owner can easily deal with it on his or her machine, and then push a new commit with both changes integrated gracefully.
+
+First step, the owner reviews and approves Bruno’s pull request.The pull request can get merged and Bruno’s feature branch deleted. Now, it wouldn’t make sense for the project owner to create a pull request to merge his or her changes. They would conflict with what Bruno did. So the project owner goes back to the computer and essentially updates the code in his or her feature branch by merging master into it.
+
+Git detect that there’s some conflicts and tells the owner to fix them, and then commit the results. So let’s open analysis.R and see how it looks like (you can view the file online on this [link](https://gist.github.com/b-rodrigues/f713702268c99328ad16af56f7d32892). First of all, you will see Git deals with conflicts on a per line basis. So each line that the owner changed that does not conflict with Bruno’s change gets immediately updated to reflect the owner’s changes. 
+
+Then, you should understand what happens when a conflict gets detected on some lines.
+
+```
+<<<<<<< HEAD
+filtered_data <- commune_level_data |>
+  filter(locality == communes[1])
+=======
+  filtered_data <- commune_level_data %>%
+    filter(locality == commune)
+>>>>>>> a43c68f5596563ffca33b3729451bffc762782c3
+```
+
+We both see how the lines look on the owner’s computer and how they look in the master branch (or trunk). These are the lines between <<<<<<< HEAD and =======. The lines between ======= and >>>>>>> a43c68f5596563ffca33b3729451bffc762782c3 are how they look in the master branch (or trunk). This very long chain of characters that starts with a43c68f is the hash of the commit from which these lines come from.
+
+So this makes things quite easy; one simply needs to remove the outdated code, and then commit and push the fixed file! The project owner only needs to remove <<<<<<< HEAD and ======= and what’s between these lines, as well as the lines that show the hash commit. The project owner can now commit and push the changes, open a pull request, ask Bruno to review the changes one last time and merge everything back to master.
+
+
+### Git blame
+
+If many people contribute to a single project, it might sometimes be difficult to know who changed what and when exactly. This is where the git blame command is useful. If you want to know who changed the file called analysis.R for example, simply run:
+
+```{bash}
+git blame analysis.R
+```
+
+
+
+### Contributing to public repositories
+
+In this last section, we are going to briefly discuss how to contribute to a project when we are not a team member of that project. For example, maybe we use an R package and notice a bug, and want to propose a fix. Or maybe we simply spotted a typo in the README of said package, and want to propose a correction. Whatever it may be, if the repository is public, anyone can propose a fix. 
+
+Let's imagine Bruno notices a typo in the readme, and wants to propose a fix.
+
+First, Bruno visits the repository on Github (since it’s a public repository, anyone can view it online) and creates a fork. Forking creates a copy of the repository to Bruno’s account and he can see the fork on his account.
+
+So now, Bruno can clone this repository and work on it, because he is working on a copy of the repository that he owns. Anything Bruno does on this copy will not affect the original repository.
+
+```{bash}
+git clone git@github.com:b-rodrigues/my_cool_project.git
+```
+
+Bruno now fixes the typo in the README.md file, commits and pushes to his fork.
+
+As you will see, Bruno’s fork is now ahead of the original repo by one commit. By clicking on “Contribute”, Bruno can open a pull request to propose his fix to the original repository. This pull request will be opened over at the original repository.
+
+What does the owner of the original repository, “rap4all” see? The pull request Bruno opened is now in the original repository’s “Pull request” menu, and the owner can check what the contribution is, if it breaks code or not, etc.
+
+
+
+
+
+
+
+
+
+
